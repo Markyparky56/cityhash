@@ -32,10 +32,6 @@
 #include <algorithm>
 #include <string.h>  // for memcpy and memset
 
-#ifdef __cplusplus
-using namespace std;
-#endif
-
 static uint64_t UNALIGNED_LOAD64(const char *p) {
   uint64_t result;
   memcpy(&result, p, sizeof(result));
