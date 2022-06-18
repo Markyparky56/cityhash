@@ -1,19 +1,8 @@
-local SRC_DIR = "src/"
-
 -- Append solution type to build dir
 local BUILD_DIR = path.join("build/", _ACTION)
 -- If specific compiler specified, append that too
 if _OPTIONS["cc"] ~= nil then
     BUILD_DIR = BUILD_DIR .. "_" .. _OPTIONS["cc"]
-end
-
-newoption {
-    trigger = "with-crc",
-    description = "Enable vector instructions to use CRC intrinsics"
-}
-local CRC_ENABLED = "Default"
-if _OPTIONS["with-crc"] ~= nil then
-    CRC_ENABLED = "AVX" -- technically only need sse4.2 but MSVC doesn't have a switch for that
 end
 
 workspace "cityhash"
@@ -54,37 +43,5 @@ workspace "cityhash"
     filter "action:vs*"
         buildoptions { "/Zc:__cplusplus" }
         flags { "MultiProcessorCompile" }
-    filter "files:**.cc"
-        compileas "C"
 
-
-project "cityhash-c"
-    kind "StaticLib"
-    language "C"
-    vectorextensions (CRC_ENABLED)
-    files
-    {
-        path.join(SRC_DIR, "city.h"),
-        path.join(SRC_DIR, "citycrc.h"),
-        path.join(SRC_DIR, "city.cc"),
-    }
-    includedirs
-    {
-        (SRC_DIR)
-    }
-
-project "cityhash-test"
-    kind "ConsoleApp"
-    language "C"
-    vectorextensions (CRC_ENABLED)
-    files
-    {
-        path.join(SRC_DIR, "city.h"),
-        path.join(SRC_DIR, "citycrc.h"),
-        path.join(SRC_DIR, "city.cc"),
-        path.join(SRC_DIR, "city-test.cc")
-    }
-    includedirs
-    {
-        (SRC_DIR)
-    }
+include "cityhash-projects.lua"
