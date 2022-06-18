@@ -64,7 +64,13 @@
 
 #include <stdlib.h>  // for size_t.
 #include <stdint.h>
-#include <utility>
+
+// MSVC doesn't define an SSE4_2 macro, but SSE4.2 is implicitly included in AVX so we check for that instead
+#ifdef _MSC_VER
+  #ifdef __AVX__
+#define __SSE4_2__
+  #endif
+#endif
 
 // Borrowed from https://github.com/mulle-nat-stash/cityhash/
 typedef struct

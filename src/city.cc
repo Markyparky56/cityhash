@@ -28,8 +28,6 @@
 // compromising on hash quality.
 
 #include <city.h>
-
-#include <algorithm>
 #include <string.h>  // for memcpy and memset
 
 static uint64_t UNALIGNED_LOAD64(const char *p) {
@@ -273,7 +271,8 @@ static uint64_t ShiftMix(uint64_t val) {
 }
 
 static uint64_t HashLen16(uint64_t u, uint64_t v) {
-  return Hash128to64(&uint128_make(u, v));
+  const uint128 as128 = uint128_make(u, v);
+  return Hash128to64(&as128);
 }
 
 static uint64_t HashLen16Mul(uint64_t u, uint64_t v, uint64_t mul) {
@@ -305,7 +304,7 @@ static uint64_t HashLen0to16(const char *s, size_t len) {
     uint8_t b = s[len >> 1];
     uint8_t c = s[len - 1];
     uint32_t y = (uint32_t)a + ((uint32_t)b << 8);
-    uint32_t z = len + ((uint32_t)c << 2);
+    uint32_t z = (uint32_t)len + ((uint32_t)c << 2);
     return ShiftMix(y * k2 ^ z * k0) * k2;
   }
   return k2;
@@ -423,7 +422,7 @@ static uint128 CityMurmur(const char *s, size_t len, uint128 seed) {
   uint64_t b = Uint128High64(&seed);
   uint64_t c = 0;
   uint64_t d = 0;
-  signed long l = len - 16;
+  signed long l = (signed long)len - 16;
   if (l <= 0) {  // len <= 16
     a = ShiftMix(a * k1) * k1;
     c = b * k1 + HashLen0to16(s, len);
@@ -632,8 +631,8 @@ uint128 CityHashCrc128WithSeed(const char *s, size_t len, uint128 seed) {
   } else {
     uint64_t result[4];
     CityHashCrc256(s, len, result);
-    uint64_t u = Uint128High64(seed) + result[0];
-    uint64_t v = Uint128Low64(seed) + result[1];
+    uint64_t u = Uint128High64(&seed) + result[0];
+    uint64_t v = Uint128Low64(&seed) + result[1];
     return uint128_make(HashLen16(u, v + result[2]),
                    HashLen16(Rotate(v, 32), u * k0 + result[3]));
   }

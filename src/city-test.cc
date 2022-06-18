@@ -20,23 +20,18 @@
 
 #include "inttypes.h"
 #include <stdio.h>
-//#include <iostream>
 #include <string.h>
 #include "city.h"
 #ifdef __SSE4_2__
 #include "citycrc.h"
 #endif
 
-// using std::cout;
-// using std::cerr;
-// using std::hex;
-
 static const uint64_t k0 = 0xc3a5c85c97cb3127ULL;
 static const uint64_t kSeed0 = 1234567;
-static const uint64_t kSeed1 = k0;
-static const uint128 kSeed128 = uint128_make(kSeed0, kSeed1);
-static const int kDataSize = 1 << 20;
-static const int kTestSize = 300;
+static const uint64_t kSeed1 = 0xc3a5c85c97cb3127ULL;
+static const uint128 kSeed128 = { .first = 1234567, .second = 0xc3a5c85c97cb3127ULL };
+#define kDataSize (1 << 20)
+#define kTestSize (300)
 
 static char data[kDataSize];
 
@@ -51,7 +46,7 @@ void setup() {
     b += a;
     a = (a ^ (a >> 41)) * k0;
     b = (b ^ (b >> 41)) * k0 + i;
-    uint8_t u = b >> 37;
+    uint8_t u = (uint8_t)(b >> 37);
     memcpy(data + i, &u, 1);  // uint8_t -> char
   }
 }
@@ -1277,19 +1272,19 @@ void Test(const uint64_t* expected, int offset, int len) {
   Check(expected[15], CityHash32(data + offset, len));
   Check(expected[1], CityHash64WithSeed(data + offset, len, kSeed0));
   Check(expected[2], CityHash64WithSeeds(data + offset, len, kSeed0, kSeed1));
-  Check(expected[3], Uint128Low64(u));
-  Check(expected[4], Uint128High64(u));
-  Check(expected[5], Uint128Low64(v));
-  Check(expected[6], Uint128High64(v));
+  Check(expected[3], Uint128Low64(&u));
+  Check(expected[4], Uint128High64(&u));
+  Check(expected[5], Uint128Low64(&v));
+  Check(expected[6], Uint128High64(&v));
 #ifdef __SSE4_2__
   const uint128 y = CityHashCrc128(data + offset, len);
   const uint128 z = CityHashCrc128WithSeed(data + offset, len, kSeed128);
   uint64_t crc256_results[4];
   CityHashCrc256(data + offset, len, crc256_results);
-  Check(expected[7], Uint128Low64(y));
-  Check(expected[8], Uint128High64(y));
-  Check(expected[9], Uint128Low64(z));
-  Check(expected[10], Uint128High64(z));
+  Check(expected[7], Uint128Low64(&y));
+  Check(expected[8], Uint128High64(&y));
+  Check(expected[9], Uint128Low64(&z));
+  Check(expected[10], Uint128High64(&z));
   for (int i = 0; i < 4; i++) {
     Check(expected[11 + i], crc256_results[i]);
   }
@@ -1302,10 +1297,12 @@ void Test(const uint64_t* expected, int offset, int len) {
 void Dump(int offset, int len) {
   const uint128 u = CityHash128(data + offset, len);
   const uint128 v = CityHash128WithSeed(data + offset, len, kSeed128);
+#ifdef __SSE4_2__
   const uint128 y = CityHashCrc128(data + offset, len);
   const uint128 z = CityHashCrc128WithSeed(data + offset, len, kSeed128);
   uint64_t crc256_results[4];
   CityHashCrc256(data + offset, len, crc256_results);
+#endif
   // cout << hex
   //      << "{C(" << CityHash64(data + offset, len) << "), "
   //      << "C(" << CityHash64WithSeed(data + offset, len, kSeed0) << "), "
@@ -1326,26 +1323,34 @@ void Dump(int offset, int len) {
     "C(%x" PRIx64 "), "
     "C(%x" PRIx64 "), "
     "C(%x" PRIx64 "),\n"
+#ifdef __SSE4_2__
     "C(%x" PRIx64 "), "
     "C(%x" PRIx64 "), "
     "C(%x" PRIx64 "), "
-    "C(%x" PRIx64 "),\n",
+    "C(%x" PRIx64 "),\n"
+#endif
+    ,
     CityHash64(data + offset, len),
     CityHash64WithSeed(data + offset, len, kSeed0),
     CityHash64WithSeeds(data + offset, len, kSeed0, kSeed1),
-    Uint128Low64(u),
-    Uint128High64(u),
-    Uint128Low64(v),
-    Uint128High64(v),
-    Uint128Low64(y),
-    Uint128High64(y),
-    Uint128Low64(z),
-    Uint128High64(z)
+    Uint128Low64(&u),
+    Uint128High64(&u),
+    Uint128Low64(&v),
+    Uint128High64(&v),
+#ifdef __SSE4_2__
+    Uint128Low64(&y),
+    Uint128High64(&y),
+    Uint128Low64(&z),
+    Uint128High64(&z)
+#endif
   );
+#ifdef __SSE4_2__
   for (int i = 0; i < 4; i++) {
     //cout << hex << "C(" << crc256_results[i] << (i == 3 ? "),\n" : "), ");
     fprintf(stdout, "C(%x" PRIx64 "%s", crc256_results[i], (i == 3 ? "),\n" : "), "));
   }
+#endif
+
   //cout << "C(" << CityHash32(data + offset, len) << ")},\n";
   fprintf(stdout, "C(%x" PRIx64 ")}\n", CityHash32(data + offset, len));
 }
