@@ -44,4 +44,5 @@ workspace "cityhash"
         buildoptions { "/Zc:__cplusplus" }
         flags { "MultiProcessorCompile" }
 
-include "cityhash-projects.lua"
+include "cityhash-clib.lua"
+include "cityhash-test.lua"
