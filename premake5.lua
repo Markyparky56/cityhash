@@ -30,9 +30,9 @@ workspace "cityhash"
     else
         platforms "x86"
     end
-    targetdir (BUILD_DIR .. "/bin/" .. "%{cfg.architecture}" .. "/" .. "%{cfg.shortname}")
+    targetdir (BUILD_DIR .. "/bin/" .. "%{cfg.shortname}")
     debugdir "%{cfg.targetdir}"
-    objdir (BUILD_DIR .. "/bin/obj/" .. "%{cfg.architecture}" .. "/" .. "%{cfg.shortname}")
+    objdir (BUILD_DIR .. "/bin/obj/" .. "%{cfg.shortname}")
 
     filter "configurations:Debug"
         defines 
