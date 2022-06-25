@@ -3,6 +3,7 @@ include "cityhash-common.lua"
 project "cityhash-test"
     kind "ConsoleApp"
     language "C"
+    cdialect "C17"
     vectorextensions (CRC_ENABLED)
     files
     {

@@ -3,6 +3,7 @@ include "cityhash-common.lua"
 project "cityhash-c"
     kind "StaticLib"
     language "C"
+    cdialect "C17"
     vectorextensions (CRC_ENABLED)
     files
     {
