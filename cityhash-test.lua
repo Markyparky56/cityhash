@@ -5,6 +5,9 @@ project "cityhash-test"
     language "C"
     cdialect "C17"
     vectorextensions (CRC_ENABLED)
+    exceptionhandling (EXCEPTIONS_ENABLED)
+    rtti "Off"
+    staticruntime (STATIC_RUNTIME)
     files
     {
         path.join(SRC_DIR, "city.h"),
